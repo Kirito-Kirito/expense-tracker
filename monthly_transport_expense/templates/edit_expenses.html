@@ -1,0 +1,12 @@
+{% extends 'master.html' %} {% block title %}Edit Expense Record{% endblock %}
+{% block content %}
+
+<div class="container mt-5">
+  <h2>Edit Expense Record</h2>
+  <form method="POST">
+    {% csrf_token %} {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Update Record</button>
+    <a href="{% url 'expense_list' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}
