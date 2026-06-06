@@ -17,22 +17,38 @@ from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 
 
-# Create your views here.
+
 FONT_PATH = os.path.join(os.path.dirname(__file__), "fonts/MSGOTHIC.TTC")
 
 pdfmetrics.registerFont(TTFont("MSGothic", FONT_PATH))
 
-
+@login_required
 def expense_list(request):
-
     today = date.today()
     selected_month = int(request.GET.get("month", today.month))
     selected_year = int(request.GET.get("year", today.year))
+    
+    if request.method == "POST":
+        form = ExpenseForm(request.POST)
+        if form.is_valid():
+            expense = form.save(commit=False)
+            expense.user = request.user
+            expense.save()
+            return redirect("expense_list")
+    else:
+        form = ExpenseForm()
 
     expenses = Expense.objects.filter(
-        date__month=selected_month, date__year=selected_year
+        user=request.user,
+        date__month=selected_month, 
+        date__year=selected_year
     ).order_by("date")
     current_total = expenses.aggregate(Sum("amount"))["amount__sum"] or 0
     current_month_first_day = date(selected_year, selected_month, 1)
@@ -42,20 +58,13 @@ def expense_list(request):
     prev_month_name = f"{prev_month_date.month}月"
     prev_total = (
         Expense.objects.filter(
-            date__month=prev_month_date.month, date__year=prev_month_date.year
+            user=request.user,
+            date__month=prev_month_date.month, 
+            date__year=prev_month_date.year
         ).aggregate(Sum("amount"))["amount__sum"]
         or 0
     )
-
     difference = current_total - prev_total
-
-    if request.method == "POST":
-        form = ExpenseForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("expense_list")
-    else:
-        form = ExpenseForm()
 
     context = {
         "expenses": expenses,
@@ -70,6 +79,7 @@ def expense_list(request):
         "current_month_name": current_month_name,
         "months": range(1, 13),
         "years": range(today.year - 2, today.year + 2),
+        # "user_login" : user_login,
     }
     return render(request, "expenses_list.html", context)
 
@@ -99,14 +109,13 @@ FONT_PATH = os.path.join(BASE_DIR, "monthly_transport_expense", "fonts", "MSGOTH
 
 pdfmetrics.registerFont(TTFont("MSGothic", FONT_PATH))
 
-
+@login_required
 def export_expenses_pdf(request):
     today = datetime.now()
     month = int(request.GET.get("month", today.month))
     year = int(request.GET.get("year", today.year))
 
     buffer = io.BytesIO()
-    # PDF margin တွေကို သတ်မှတ်မယ်
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
@@ -205,10 +214,9 @@ def export_expenses_pdf(request):
     )
 
     elements.append(header_table)
-    elements.append(Spacer(1, 20))  # နေရာလွတ်လေး ချန်မယ်
+    elements.append(Spacer(1, 20))  
 
-    # ၃။ ဇယားဒေတာ (Table Data)
-    # စာရွက်ထဲကအတိုင်း Header တွေ ရေးမယ်
+    
     data = [
         [
             "利用日",
@@ -220,14 +228,15 @@ def export_expenses_pdf(request):
             "目的・事由",
             "利用金額",
         ],
-        # ဒုတိယ header row (ဥပမာ- မှ/သို့)
         ["", "", "から", "~", "まで", "", "", ""],
     ]
 
     # Database ထဲက data တွေကို ဖြည့်မယ်
-    expenses = Expense.objects.filter(date__month=month, date__year=year).order_by(
-        "date"
-    )
+    expenses = Expense.objects.filter(
+        user=request.user,
+        date__month=month, 
+        date__year=year
+    ).order_by("date")
 
     total = 0
     for item in expenses:
@@ -245,11 +254,9 @@ def export_expenses_pdf(request):
         )
         total += item.amount
 
-    # ၄။ စုစုပေါင်း (Total Row)
     data.append(["", "", "", "", "", "", "合計", total])
 
-    # ၅။ ဇယားပုံစံပြင်ခြင်း (Table Styling)
-    # စာရွက်ပေါ်ကအတိုင်း မျဉ်းကြောင်းတွေ ဆွဲမယ်
+    
     table = Table(data, colWidths=[70, 60, 80, 20, 80, 50, 100, 60])
     style = TableStyle(
         [
@@ -273,6 +280,36 @@ def export_expenses_pdf(request):
     filename = f"交通費申請書_{year}_{month}.pdf"
     return FileResponse(buffer, as_attachment=True, filename=filename)
 
+def register(request):
+    if request.user.is_authenticated:
+        return redirect('expense_list')
+    
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}!')
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+def custom_login(request):
+    if request.user.is_authenticated:
+        return redirect('expense_list')
+    
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('expense_list')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'registration/login.html', {'form': form})
+        
 
 def main(request):
     template = loader.get_template("main.html")

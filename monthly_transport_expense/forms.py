@@ -5,6 +5,7 @@ class ExpenseForm(forms.ModelForm):
     class Meta:
         model = Expense
         fields = '__all__'
+        exclude = ['user']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'transport': forms.Select(attrs={'class': 'form-select'}),
