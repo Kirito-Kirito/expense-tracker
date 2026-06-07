@@ -3,15 +3,15 @@
 {% block title %} Expense Tracker {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
     body {
-        background-color: #f3f4f6; /* နောက်ခံကို မီးခိုးဖျော့ရောင်ထားမယ် */
+        background-color: #f3f4f6;
         font-family: 'Inter', sans-serif;
     }
 
-    /* Card ပုံစံလေးတွေ ပြင်မယ် */
+    /* Card ပုံစံလေးများ */
     .custom-card {
         background: #ffffff;
         border-radius: 16px;
@@ -19,7 +19,7 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
-    /* Table ခေါင်းစဉ်ကို အရောင်ပြောင်းမယ် */
+    /* Table ခေါင်းစဉ် */
     .table thead {
         background-color: #f9fafb;
     }
@@ -38,7 +38,7 @@
         vertical-align: middle;
     }
 
-    /* Form ထဲက Input box တွေကို လှအောင်ပြင်မယ် */
+    /* Form Inputs အလှပြင်ခြင်း */
     input, select, textarea {
         display: block;
         width: 100%;
@@ -49,75 +49,61 @@
         margin-bottom: 1rem;
     }
 
-    input:focus {
+    input:focus, select:focus {
         border-color: #3b82f6;
         outline: none;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
-    /* Button Hover effect */
-    .btn-primary {
-        width: 30%;
+    /* Button Layout */
+    .btn-submit-record {
         background-color: #2563eb;
         transition: all 0.2s;
         border: none;
         color: white;
         font-size: 15px;
         cursor: pointer;
-        display: inline-block;
         padding: 10px 22px;
-        margin: 4px 2px;
         border-radius: 8px;
-        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.6);
-    }
-    .btn-primary:active{
-        box-shadow: 0 5px #666;
-        transform: translateY(4px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        width: 100%; /* Form Card ထဲမှာ အပြည့်ပေါ်စေရန် */
     }
 
-    .btn-primary:hover {
+    .btn-submit-record:hover {
         background-color: #1d4ed8;
         transform: translateY(-1px);
     }
+
+    .btn-submit-record:active {
+        transform: translateY(1px);
+    }
+
     .card { transition: transform 0.2s; }
-    .card:hover { transform: translateY(-5px); }
+    .card:hover { transform: translateY(-3px); }
     .text-primary { color: #3b82f6 !important; }
 
-    /* ဖုန်းအတွက် အဓိကပြင်ဆင်ချက် */
     @media (max-width: 768px) {
         .card, .custom-card {
-            padding: 15px !important; /* Padding ကို လျှော့လိုက်မယ် */
+            padding: 15px !important;
             margin-bottom: 20px;
         }
-
-        /* Input တွေ အပြင်မထွက်အောင် ၁၀၀% ပဲ ထားမယ် */
         input, select, textarea {
             max-width: 100% !important;
             width: 100% !important;
-            box-sizing: border-box; /* padding ကြောင့် ရှည်မထွက်အောင် */
+            box-sizing: border-box;
         }
-        
-        /* Save Record ခလုတ်ကို အပြည့်ထားမယ် */
-        .btn-primary {
-            width: 100% !important;
-        }
-        .btn-danger {
-        font-size: 1.1rem; /* စာလုံးဆိုဒ်ကို ကြီးစေတယ် */
-        font-weight: bold;
-        border-radius: 12px; /* ခလုတ်ထောင့်လေးတွေကို ဝိုင်းစေတယ် */
-    }
     }
 </style>
 
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="row mb-3">
+<div class="row g-4">
+    
     <div class="col-12 col-md-6">
-        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
             <p class="small mb-1" style="opacity: 0.8;">Monthly Comparison</p>
             <h2 class="fw-bold">¥ {{ total }}</h2>
-            <p class="mb-0 small">
+            <p class="mb-0 small mt-2">
                 {% if difference > 0 %}
                     <span class="badge bg-danger">▲ ¥ {{ difference }}</span> higher than last month
                 {% else %}
@@ -126,76 +112,41 @@
             </p>
         </div>
     </div>
-</div>
 
     <div class="col-12 col-md-6">
         <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 15px;">
             <canvas id="expenseChart" style="max-height: 150px;"></canvas>
         </div>
     </div>
+
+</div> <div class="d-flex justify-content-between align-items-center my-4 pt-2">
+    <h3 class="fw-bold text-primary m-0">Expense Tracker</h3>
+    <div class="text-end">
+        <p class="mb-0 text-muted small">Total for this month</p>
+        <h4 class="fw-bold m-0">¥ {{ total }}</h4>
+    </div>
 </div>
 
-<script>
-    const ctx = document.getElementById('expenseChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['{{ prev_month_name }}', '{{ current_month_name }}'],
-            datasets: [{
-                label: 'Expenses (¥)',
-                data: [Number('{{ prev_total }}'), Number('{{ total }}')],
-                backgroundColor: ['#e2e8f0', '#3b82f6'], // အရောင်နှစ်မျိုးခွဲထားတယ်
-                borderRadius: 10,
-                barThickness: 40
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false } // Legend ကို ဖျောက်ထားမယ်
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { display: false },
-                    ticks: { display: false } // ဂဏန်းတွေကို ဖျောက်ပြီး graph တိုင်ပဲ ပြမယ်
-                },
-                x: {
-                    grid: { display: false }
-        }
-    }
-}
-    });
-</script>
-
-
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary">Expense Tracker</h2>
-        <div class="text-end">
-            <p class="mb-0 text-muted">Total for this month</p>
-            <h3 class="fw-bold">¥ {{ total }}</h3>
+<div class="row g-4">
+    
+    <div class="col-12 col-lg-4">
+        <div class="custom-card p-4 shadow-sm">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-plus text-primary me-2"></i>Add New Record</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.as_p }}
+                </div>
+                <button type="submit" class="btn-submit-record shadow-sm">Save Record</button>
+            </form>
         </div>
     </div>
 
-    <div class="container-fluid px-3"> <div class="row">
-        <div class="col-12 col-lg-4 mb-4">
-            <div class="custom-card p-3 shadow-sm">
-                <h5 class="fw-bold">Add New Record</h5>
-                <form method="POST">
-                    {% csrf_token %}
-                     <div class="mb-3">
-                        {{ form.as_p }} </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 shadow-sm">Save Record</button>
-                </form>
-            </div>
-        </div>
-    </div>
-        <div class="col-12 col-lg-8">
-            <div class="table-responsive shadow-sm" style="border-radius: 10px;">
-                <table class="table table-hover bg-white">
+    <div class="col-12 col-lg-8">
+        <div class="custom-card shadow-sm p-3">
+            
+            <div class="table-responsive" style="border-radius: 10px;">
+                <table class="table table-hover bg-white align-middle m-0">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -207,54 +158,87 @@
                     <tbody>
                         {% for item in expenses %}
                         <tr>
-                            <td class="text-muted">{{ item.date }}</td>
+                            <td class="text-muted small">{{ item.date }}</td>
                             <td>
-                                <span class="fw-600">{{ item.start_location }} ~ {{ item.end_location }}</span><br>
+                                <span class="fw-semibold text-dark">{{ item.start_location }} ~ {{ item.end_location }}</span><br>
                                 <small class="text-muted">{{ item.transport }} | {{ item.purpose }}</small>
                             </td>
-                            <td class="text-end fw-bold">¥ {{ item.amount }}</td>
+                            <td class="text-end fw-bold text-dark">¥ {{ item.amount }}</td>
                             <td class="text-center">
-                                <a href="{% url 'edit_expense' item.pk %}" class="text-warning me-2"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="{% url 'delete_expense' item.pk %}" class="text-danger"><i class="fas fa-trash"></i> Del</a>
+                                <a href="{% url 'edit_expense' item.pk %}" class="text-warning text-decoration-none me-3"><i class="fas fa-edit"></i> Edit</a>
+                                <a href="{% url 'delete_expense' item.pk %}" class="text-danger text-decoration-none"><i class="fas fa-trash"></i> Del</a>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
-                    
                 </table>
-
-                    <form method="GET" class="row g-2 mb-4 align-items-end">
-    <div class="col-auto">
-        <label class="form-label small">Year</label>
-        <select name="year" class="form-select form-select-sm">
-            {% for y in years %}
-                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-auto">
-        <label class="form-label small">Month</label>
-        <select name="month" class="form-select form-select-sm">
-            {% for m in months %}
-                <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-    </div>
-
-</form>
-    <div style="margin-top: 30px; margin-bottom: 40px;">
-        <a href="{% url 'export_expenses_pdf' %}?month={{ current_month }}&year={{ current_year }}" 
-            class="btn btn-danger btn-lg w-100 shadow-sm py-3">
-            <i class="fas fa-file-pdf me-2"></i> Download as PDF
-        </a>
-    </div> 
             </div>
-            
+
+            <div class="mt-4 pt-3 border-top">
+                <form method="GET" class="row g-2 align-items-end">
+                    <div class="col-6 col-sm-auto">
+                        <label class="form-label small text-muted mb-1">Year</label>
+                        <select name="year" class="form-select form-select-sm m-0">
+                            {% for y in years %}
+                                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-sm-auto">
+                        <label class="form-label small text-muted mb-1">Month</label>
+                        <select name="month" class="form-select form-select-sm m-0">
+                            {% for m in months %}
+                                <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-auto mt-2 mt-sm-0">
+                        <button type="submit" class="btn btn-primary btn-sm px-3 w-100" style="width: auto !important; border-radius: 6px;">Filter</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="mt-4 mb-2">
+                <a href="{% url 'export_expenses_pdf' %}?month={{ current_month }}&year={{ current_year }}" 
+                   class="btn btn-danger btn-lg w-100 shadow-sm py-2" style="border-radius: 10px; font-weight: bold; font-size: 1rem;">
+                    <i class="fas fa-file-pdf me-2"></i> Download as PDF
+                </a>
+            </div>
+
         </div>
-        
     </div>
-</div>
+
+</div> <script>
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['{{ prev_month_name }}', '{{ current_month_name }}'],
+            datasets: [{
+                label: 'Expenses (¥)',
+                data: [Number('{{ prev_total }}'), Number('{{ total }}')],
+                backgroundColor: ['#e2e8f0', '#3b82f6'],
+                borderRadius: 8,
+                barThickness: 35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: { display: false }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

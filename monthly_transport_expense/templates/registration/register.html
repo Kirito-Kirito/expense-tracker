@@ -18,12 +18,29 @@
                 {% for field in form %}
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">{{ field.label }}</label>
-                        <input type="{{ field.field.widget.input_type }}" 
-                               name="{{ field.html_name }}" 
-                               class="form-control" 
-                               style="border-radius: 8px; padding: 10px;"
-                               {% if field.field.widget.input_type == 'password' %} autocomplete="new-password" {% else %} autocomplete="off" {% endif %}
-                               required>
+                        
+                        {% if field.field.widget.input_type == 'password' %}
+                            <div class="input-group">
+                                <input type="password" 
+                                       name="{{ field.html_name }}" 
+                                       class="form-control reg-password-field" 
+                                       style="border-top-left-radius: 8px; border-bottom-left-radius: 8px; padding: 10px;"
+                                       autocomplete="new-password"
+                                       required>
+                                <button class="btn btn-outline-secondary reg-toggle-btn" type="button">
+                                    <i class="fa-solid fa-eye reg-toggle-icon"></i>
+                                </button>
+                            </div>
+                        
+                        {% else %}
+                            <input type="{{ field.field.widget.input_type }}" 
+                                   name="{{ field.html_name }}" 
+                                   class="form-control" 
+                                   style="border-radius: 8px; padding: 10px;"
+                                   autocomplete="off"
+                                   required>
+                        {% endif %}
+
                         {% if field.help_text %}
                             <div class="form-text text-muted" style="font-size: 11px;">{{ field.help_text }}</div>
                         {% endif %}
@@ -44,4 +61,27 @@
         </div>
     </div>
 </div>
+
+<script>
+    // ရက္စတားဖောင်မှာ Password Field တစ်ခုထက်မက (ဥပမာ- Password အစစ်နှင့် Confirm Password) ရှိနိုင်၍ Loop ပတ်ပြီး ကိုင်တွယ်ခြင်း
+    const toggleButtons = document.querySelectorAll('.reg-toggle-btn');
+    
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            // ခလုတ်ရဲ့ ဘေးကပ်လျက်က Input Box ကို လှမ်းယူခြင်း
+            const passwordField = this.parentElement.querySelector('.reg-password-field');
+            const toggleIcon = this.querySelector('.reg-toggle-icon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        });
+    });
+</script>
 {% endblock %}

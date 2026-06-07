@@ -23,12 +23,29 @@
                 {% for field in form %}
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary">{{ field.label }}</label>
-                        <input type="{{ field.field.widget.input_type }}" 
-                               name="{{ field.html_name }}" 
-                               class="form-control" 
-                               style="border-radius: 8px; padding: 10px;"
-                               autocomplete="off"
-                               required>
+                        
+                        {% if field.field.widget.input_type == 'password' %}
+                            <div class="input-group">
+                                <input type="password" 
+                                       name="{{ field.html_name }}" 
+                                       id="login-password-field" 
+                                       class="form-control" 
+                                       style="border-top-left-radius: 8px; border-bottom-left-radius: 8px; padding: 10px;"
+                                       autocomplete="off"
+                                       required>
+                                <button class="btn btn-outline-secondary" type="button" id="login-toggle-btn" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                                    <i class="fa-solid fa-eye" id="login-toggle-icon"></i>
+                                </button>
+                            </div>
+                        
+                        {% else %}
+                            <input type="{{ field.field.widget.input_type }}" 
+                                   name="{{ field.html_name }}" 
+                                   class="form-control" 
+                                   style="border-radius: 8px; padding: 10px;"
+                                   autocomplete="off"
+                                   required>
+                        {% endif %}
                     </div>
                 {% endfor %}
 
@@ -46,4 +63,21 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('login-toggle-btn').addEventListener('click', function () {
+        const passwordField = document.getElementById('login-password-field');
+        const toggleIcon = document.getElementById('login-toggle-icon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+</script>
 {% endblock %}

@@ -154,7 +154,7 @@ def export_expenses_pdf(request):
         Paragraph("以下のとおり、交通費の申請をいたします。", sub_text_style)
     )
 
-    display_name = "ゼイーヤーリン"
+    display_name = request.user.username
 
     stamp_cell = Table(
         [
