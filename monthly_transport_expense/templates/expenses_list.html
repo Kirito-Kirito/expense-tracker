@@ -13,9 +13,10 @@
 
     /* Card ပုံစံလေးများ */
     .custom-card {
-        background: #ffffff;
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
         border-radius: 16px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid var(--bs-border-color);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
@@ -132,6 +133,27 @@
     <div class="col-12 col-lg-4">
         <div class="custom-card p-4 shadow-sm">
             <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-plus text-primary me-2"></i>Add New Record</h5>
+
+            {% if frequent_routes %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-primary">⚡ Quick Fill (Frequently Used Routes)</label>
+                    <select id="frequent-route-select" class="form-select form-select-sm" style="border-radius: 8px;">
+                        <option value="">-- Select a Route --</option>
+                        {% for route in frequent_routes %}
+                            <option value="{{ route.pk }}" 
+                                    data-start="{{ route.start_location }}" 
+                                    data-end="{{ route.end_location }}" 
+                                    data-transport="{{ route.transport }}" 
+                                    data-amount="{{ route.amount }}" 
+                                    data-purpose="{{ route.purpose }}">
+                                {{ route.name }} (¥{{ route.amount }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <hr class="text-muted">
+            {% endif %}
+
             <form method="POST">
                 {% csrf_token %}
                 <div class="mb-3">
@@ -166,7 +188,34 @@
                             <td class="text-end fw-bold text-dark">¥ {{ item.amount }}</td>
                             <td class="text-center">
                                 <a href="{% url 'edit_expense' item.pk %}" class="text-warning text-decoration-none me-3"><i class="fas fa-edit"></i> Edit</a>
-                                <a href="{% url 'delete_expense' item.pk %}" class="text-danger text-decoration-none"><i class="fas fa-trash"></i> Del</a>
+                                <button type="button" class="btn btn-sm btn-danger rounded-3" data-bs-toggle="modal" data-bs-target="#deleteModal-{{ item.pk }}">
+    <i class="fa-solid fa-trash-can"></i> Delete
+</button>
+
+<div class="modal fade" id="deleteModal-{{ item.pk }}" tabindex="-1" aria-labelledby="deleteModalLabel-{{ item.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow rounded-4" style="background: var(--bs-body-bg); color: var(--bs-body-color);">
+            
+            <div class="modal-body text-center p-4">
+                <div class="text-danger mb-3" style="font-size: 2.5rem;">
+                    <i class="fa-solid fa-triangle-exclamation animate__animated animate__pulse animate__infinite"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Are you sure?</h5>
+                <p class="text-muted small mb-4">Deleting this record will remove it permanently.</p>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light border w-100 rounded-3 small text-secondary" data-bs-dismiss="modal">Cancel</button>
+
+                    <form action="{% url 'delete_expense' item.pk %}" method="POST" class="w-100">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger w-100 rounded-3 small fw-semibold">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -238,6 +287,28 @@
                     grid: { display: false }
                 }
             }
+        }
+    });
+</script>
+<script>
+    document.getElementById('frequent-route-select').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption && selectedOption.value !== "") {
+            // Dropdown ထဲက data- attribute တွေကို လှမ်းယူခြင်း
+            const start = selectedOption.getAttribute('data-start');
+            const end = selectedOption.getAttribute('data-end');
+            const transport = selectedOption.getAttribute('data-transport');
+            const amount = selectedOption.getAttribute('data-amount');
+            const purpose = selectedOption.getAttribute('data-purpose');
+            
+            // Django Form ရဲ့ id patterns တွေကို လှမ်းရှာပြီး value ထည့်ခြင်း
+            // (မှတ်ချက်- သင့် form fields id နာမည်တွေက id_start_location စသဖြင့် ဖြစ်နေတတ်ပါတယ်)
+            if(document.getElementById('id_start_location')) document.getElementById('id_start_location').value = start;
+            if(document.getElementById('id_end_location')) document.getElementById('id_end_location').value = end;
+            if(document.getElementById('id_transport')) document.getElementById('id_transport').value = transport;
+            if(document.getElementById('id_amount')) document.getElementById('id_amount').value = amount;
+            if(document.getElementById('id_purpose')) document.getElementById('id_purpose').value = purpose;
         }
     });
 </script>

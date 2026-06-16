@@ -1,67 +1,123 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
+    <script>
+        // 🌟 စာမျက်နှာ UI မပွင့်ခင် Theme ကို ကြိုဖတ်ပြီး ကွက်တိ သတ်မှတ်ခြင်း (လင်းခနဲဖြစ်ခြင်းကို ကာကွယ်ရန်)
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Transport Expense Tracker{% endblock %}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm py-2">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{% url 'expense_list' %}">
-                <i class="fa-solid fa-bus-simple me-2"></i>Transport Tracker
+            
+            <a class="navbar-brand fw-bold d-flex align-items-center m-0" href="{% url 'expense_list' %}">
+                <i class="fa-solid fa-bus me-2"></i>Transport Tracker
             </a>
             
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <div class="d-flex align-items-center gap-2 order-lg-last">
+                
+                <button id="theme-toggle-btn-mobile" class="btn btn-link text-white-50 p-1 d-lg-none" style="font-size: 1.2rem; text-decoration: none;" title="Toggle Dark/Light Mode">
+                    <i class="theme-icon fa-solid fa-moon text-white"></i>
+                </button>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+            </div>
             
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="ms-auto d-flex align-items-center">
+                <div class="ms-auto d-flex align-items-center gap-3 pt-3 pt-lg-0">
                     
-                    {% if user.is_authenticated %}
-                        <div class="dropdown">
-        <button class="btn btn-light bg-opacity-25 text-white dropdown-toggle rounded-pill px-3 py-1 small me-2" 
-                type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fa-solid fa-user me-1"></i> <strong>{{ user.username }}</strong>
-        </button>
-        
-        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userMenu">
-            <li>
-                <a class="dropdown-menu-item dropdown-item small py-2 text-secondary" href="{% url 'password_change' %}">
-                    <i class="fa-solid fa-key me-2 text-warning"></i>Change Password
-                </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form action="{% url 'logout' %}" method="POST" class="px-3 py-1">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-danger w-100 text-start small">
-                        <i class="fa-solid fa-right-from-bracket me-2"></i>Log Out
+                    <button id="theme-toggle-btn-desktop" class="btn btn-link text-white-50 p-1 d-none d-lg-block" style="font-size: 1.2rem; text-decoration: none;" title="Toggle Dark/Light Mode">
+                        <i class="theme-icon fa-solid fa-moon text-white"></i>
                     </button>
-                </form>
-            </li>
-        </ul>
-    </div>
+
+                    {% if user.is_authenticated %}
+                        <div class="dropdown w-auto">
+                            <button class="btn btn-light bg-opacity-25 text-white dropdown-toggle rounded-pill px-3 py-1 small" 
+                                    type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-user me-1"></i> <strong>{{ user.username }}</strong>
+                            </button>
+                            
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userMenu">
+                                <li>
+                                    <a class="dropdown-menu-item dropdown-item small py-2 text-secondary" href="{% url 'password_change' %}">
+                                        <i class="fa-solid fa-key me-2 text-warning"></i>Change Password
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'logout' %}" method="POST" class="px-3 py-1">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger w-100 text-start small">
+                                            <i class="fa-solid fa-right-from-bracket me-2"></i>Log Out
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn btn-sm btn-outline-light me-2 fw-semibold">Sign In</a>
-                        <a href="{% url 'register' %}" class="btn btn-sm btn-light text-primary fw-bold">Register</a>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{% url 'login' %}" class="btn btn-sm btn-outline-light fw-semibold px-3" style="border-radius: 8px;">Sign In</a>
+                            <a href="{% url 'register' %}" class="btn btn-sm btn-light text-primary fw-bold px-3" style="border-radius: 8px;">Register</a>
+                        </div>
                     {% endif %}
                     
                 </div>
             </div>
+            
         </div>
     </nav>
+
     <div class="container mt-4">
         {% block content %}
         {% endblock %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 🌟 ဖုန်းရော ကွန်ပျူတာပါ ခလုတ်နှစ်ခုလုံးကို ရှာဖွေခြင်း
+        const themeToggleBtnMobile = document.getElementById('theme-toggle-btn-mobile');
+        const themeToggleBtnDesktop = document.getElementById('theme-toggle-btn-desktop');
+        const themeIcons = document.querySelectorAll('.theme-icon');
+        const htmlElement = document.documentElement;
+
+        // ၁။ စာမျက်နှာ စဖွင့်ချိန်တွင် Icon အမှန်ကို နှစ်ခုလုံးမှာ ပြိုင်တူပြောင်းလဲပေးခြင်း
+        function updateIcon(theme) {
+            themeIcons.forEach(icon => {
+                if (theme === 'dark') {
+                    icon.className = 'theme-icon fa-solid fa-sun text-warning'; // Dark Mode ဖြစ်လျှင် နေမင်းပုံ
+                } else {
+                    icon.className = 'theme-icon fa-solid fa-moon text-white';   // Light Mode ဖြစ်လျှင် လမင်းပုံ
+                }
+            });
+        }
+
+        // လက်ရှိ Theme အခြေအနေအရ Icon ကို ညှိခြင်း
+        updateIcon(htmlElement.getAttribute('data-bs-theme'));
+
+        // ၂။ Theme ပြောင်းလဲသည့် Function
+        function toggleTheme() {
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme); // Browser တွင်သိမ်းဆည်းမည်
+            updateIcon(newTheme);
+        }
+
+        // ဖုန်းကော ကွန်ပျူတာကော ခလုတ်နှစ်ခုလုံးကို Event နားထောင်ခိုင်းထားခြင်း
+        if(themeToggleBtnMobile) themeToggleBtnMobile.addEventListener('click', toggleTheme);
+        if(themeToggleBtnDesktop) themeToggleBtnDesktop.addEventListener('click', toggleTheme);
+    </script>
 </body>
 </html>

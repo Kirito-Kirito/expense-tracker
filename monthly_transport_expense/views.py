@@ -9,7 +9,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from datetime import date, datetime, timedelta
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import Expense
+from .models import Expense, FrequentRoute
 from .forms import ExpenseForm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -22,6 +22,11 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth import logout
+from django.urls import reverse_lazy
+from django.contrib import messages
+from django.shortcuts import redirect
 
 
 
@@ -65,11 +70,13 @@ def expense_list(request):
         or 0
     )
     difference = current_total - prev_total
+    frequent_routes = FrequentRoute.objects.filter(user=request.user)
 
     context = {
         "expenses": expenses,
         "form": form,
         "total": current_total,
+        "frequent_routes": frequent_routes,
         "prev_total": prev_total,
         "difference": difference,
         "abs_difference": abs(difference),
@@ -309,6 +316,16 @@ def custom_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'registration/login.html', {'form': form})
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = 'registration/password_change_form.html'
+    success_url = reverse_lazy('login')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        logout(self.request)
+        messages.success(self.request, 'Your password was changed successfully. Please log in again.')
+        return response
         
 
 def main(request):
